@@ -2,7 +2,7 @@
 """
 Created on Fri Dec  2 14:29:39 2016
 
-@author: Robbert Gordon & Russell Coke
+@author: Robert Gordon & Russell Coke
 """
 
 
