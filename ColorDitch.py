@@ -51,13 +51,13 @@ class ColorBall(Sprite):
         
     def move(self, direction):
         if direction.lower() == "up":
-                self.pos = (self.pos[0],self.pos[1]-10)
-                self.rect.move_ip(0,-10)
+                self.pos = (self.pos[0],self.pos[1]-20)
+                self.rect.move_ip(0,-20)
                 print("Up: ", self.rect)
         if self.pos != START_POS:
             if direction.lower() == "down":
-                self.pos = (self.pos[0],self.pos[1]+1)
-                self.rect.move_ip(0,1)
+                self.pos = (self.pos[0],self.pos[1]+2)
+                self.rect.move_ip(0,2)
                 print("Down: ", self.rect)
                 
     def changeColor(self, color):
