@@ -30,9 +30,16 @@ class ColorWheel(Sprite):
         return self.colors[['red','green','blue','yellow'][random.randrange(4)]]
         
     def display(self, surface):
-        pygame.draw.rect(surface, (255,255,255), self.rect)
+        pygame.draw.rect(surface, (0,0,0), self.rect)
         surface.blit(self.image, self.pos)
         
+    def move(self, direction):
+        if direction.lower() == "up":
+                self.pos = (self.pos[0],self.pos[1]+20)
+                self.rect.move_ip(0,20)
+        if direction.lower() == "down":
+                self.pos = (self.pos[0],self.pos[1]-1)
+                self.rect.move_ip(0,-1)
 
 class ColorBall(Sprite):
     def __init__(self, radius):
@@ -46,25 +53,25 @@ class ColorBall(Sprite):
         
         
     def display(self, surface):
-        pygame.draw.rect(surface, (255,255,255), self.rect)
+        pygame.draw.rect(surface, (0,0,0), self.rect)
         pygame.draw.circle(surface, self.color, self.pos, self.image.get_width())
         
     def move(self, direction):
         if direction.lower() == "up":
                 self.pos = (self.pos[0],self.pos[1]-20)
                 self.rect.move_ip(0,-20)
-                print("Up: ", self.rect)
+    
         if self.pos != START_POS:
             if direction.lower() == "down":
                 self.pos = (self.pos[0],self.pos[1]+2)
                 self.rect.move_ip(0,2)
-                print("Down: ", self.rect)
-                
+        
     def changeColor(self, color):
         self.color = color
-        
+colorwheel = []
 ball = ColorBall(5)
 gravity = False
+
 while True:
     surface.fill((0,0,0))
     for event in pygame.event.get():
@@ -73,19 +80,27 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN:
             gravity = False
             ball.move("up")
+            for i in colorwheel:
+                i.move("up")
         if event.type == pygame.MOUSEBUTTONUP:
             gravity = True
         
     if gravity:
         ball.move("down")
-        
-    colorwheel = ColorWheel((surface.get_width()//2-5,surface.get_height()//2), 10) 
-    if ball.rect.colliderect(colorwheel.rect):
-        print("collides")
-        ball.changeColor(colorwheel.assignColor())
+
+    if random.randint(0,1000)>995:
+        colorwheel.append(ColorWheel((surface.get_width()//2-5,0), 10))
+    for i in colorwheel:
+        if ball.rect.colliderect(i.rect):
+            oldColor = ball.color
+            ball.changeColor(i.assignColor())
+            while ball.color == oldColor:
+                ball.changeColor(i.assignColor())
+            colorwheel.remove(i)
     
     ball.display(surface)
-    colorwheel.display(surface)
+    for i in colorwheel:
+        i.display(surface)
     pygame.display.update()
 pygame.display.quit()
 
