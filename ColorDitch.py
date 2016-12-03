@@ -20,19 +20,23 @@ class ColorWheel(Sprite):
     def __init__(self, pos, radius):
         super().__init__()
         self.pos = pos
-        self.colors = {'red': [255,0,0],'green': [0,255,0], 'blue': [0,0,255], 'yellow': [0,255,255]} 
+        self.colors = {'red': [255,0,0],'green': [0,255,0], 'blue': [0,0,255], 'yellow': [0,255,255]}
         self.image = pygame.image.load('images/color_wheel.png').convert()
         self.image = pygame.transform.smoothscale(self.image, (20,20)) #reduce image size
         self.rect = pygame.Rect(pos, (radius,radius))
-        
-        
-    def assignColor(self):
-        return self.colors[['red','green','blue','yellow'][random.randrange(4)]]
-        
+
+
+    def changeBallColor(self, ball):
+        newColor = self.colors[['red','green','blue','yellow'][random.randrange(4)]]
+        oldColor = ball.color
+        while newColor == oldColor:
+            newColor = self.colors[['red','green','blue','yellow'][random.randrange(4)]]
+        ball.changeColor(newColor)
+
     def display(self, surface):
         pygame.draw.rect(surface, (0,0,0), self.rect)
         surface.blit(self.image, self.pos)
-        
+
     def move(self, direction):
         if direction.lower() == "up":
                 self.pos = (self.pos[0],self.pos[1]+20)
@@ -41,33 +45,37 @@ class ColorWheel(Sprite):
                 self.pos = (self.pos[0],self.pos[1]-1)
                 self.rect.move_ip(0,-1)
 
+    def disappear(self, container):
+        container.remove(self)
+
 class ColorBall(Sprite):
     def __init__(self, radius):
         super().__init__()
-        self.colors = {'red': [255,0,0],'green': [0,255,0], 'blue': [0,0,255], 'yellow': [0,255,255]} 
+        self.colors = {'red': [255,0,0],'green': [0,255,0], 'blue': [0,0,255], 'yellow': [0,255,255]}
         self.color = self.colors[['red', 'green','blue','yellow'][random.randrange(4)]]
         self.pos = START_POS
         self.image = pygame.Surface((radius, radius))
         self.image.fill(self.color)
         self.rect = pygame.Rect(self.pos, (radius, radius))
-        
-        
+
+
     def display(self, surface):
         pygame.draw.rect(surface, (0,0,0), self.rect)
         pygame.draw.circle(surface, self.color, self.pos, self.image.get_width())
-        
+
     def move(self, direction):
         if direction.lower() == "up":
                 self.pos = (self.pos[0],self.pos[1]-20)
                 self.rect.move_ip(0,-20)
-    
+
         if self.pos != START_POS:
             if direction.lower() == "down":
                 self.pos = (self.pos[0],self.pos[1]+2)
                 self.rect.move_ip(0,2)
-        
+
     def changeColor(self, color):
         self.color = color
+
 colorwheel = []
 ball = ColorBall(5)
 gravity = False
@@ -84,7 +92,7 @@ while True:
                 i.move("up")
         if event.type == pygame.MOUSEBUTTONUP:
             gravity = True
-        
+
     if gravity:
         ball.move("down")
 
@@ -92,16 +100,11 @@ while True:
         colorwheel.append(ColorWheel((surface.get_width()//2-5,0), 10))
     for i in colorwheel:
         if ball.rect.colliderect(i.rect):
-            oldColor = ball.color
-            ball.changeColor(i.assignColor())
-            while ball.color == oldColor:
-                ball.changeColor(i.assignColor())
-            colorwheel.remove(i)
-    
+            i.changeBallColor(ball)
+            i.disappear(colorwheel)
+
     ball.display(surface)
     for i in colorwheel:
         i.display(surface)
     pygame.display.update()
 pygame.display.quit()
-
-        
