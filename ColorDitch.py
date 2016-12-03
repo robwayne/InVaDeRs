@@ -20,8 +20,8 @@ class ColorWheel(Sprite):
     def __init__(self, pos, radius):
         super().__init__()
         self.pos = pos
-        self.colors = {'red': [255,0,0],'green': [0,255,0], 'blue': [0,0,255], 'yellow': [0,255,255]}
-        self.image = pygame.image.load('images/color_wheel.png').convert()
+        self.colors = {'red': [255,0,0],'green': [0,255,0], 'blue': [0,0,255], 'yellow': [255,255,0]}
+        self.image = pygame.image.load('images/color-wheel.png').convert()
         self.image = pygame.transform.smoothscale(self.image, (20,20)) #reduce image size
         self.rect = pygame.Rect(pos, (radius,radius))
 
@@ -34,7 +34,6 @@ class ColorWheel(Sprite):
         ball.changeColor(newColor)
 
     def display(self, surface):
-        pygame.draw.rect(surface, (0,0,0), self.rect)
         surface.blit(self.image, self.pos)
 
     def move(self, direction):
@@ -60,7 +59,6 @@ class ColorBall(Sprite):
 
 
     def display(self, surface):
-        pygame.draw.rect(surface, (0,0,0), self.rect)
         pygame.draw.circle(surface, self.color, self.pos, self.image.get_width())
 
     def move(self, direction):
@@ -77,7 +75,7 @@ class ColorBall(Sprite):
         self.color = color
 
 colorwheel = []
-ball = ColorBall(5)
+ball = ColorBall(7)
 gravity = False
 
 while True:
