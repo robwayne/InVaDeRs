@@ -14,7 +14,12 @@ import sys
 
 pygame.init()
 surface = pygame.display.set_mode((640,480))
-START_POS = (surface.get_width()//2, surface.get_height()-20)
+START_POS = (surface.get_width()//2+2, surface.get_height()-20)
+
+class ObstacleBars(pygame.sprite.Group):
+    def __init__(self, surface):
+        super().__init__()
+        self.pos = (surface.get_width(), random.randrange(int(surface.get_height()*0.75)))
 
 class ColorWheel(Sprite):
     def __init__(self, pos, radius):
@@ -65,7 +70,6 @@ class ColorBall(Sprite):
         if direction.lower() == "up":
                 self.pos = (self.pos[0],self.pos[1]-20)
                 self.rect.move_ip(0,-20)
-
         if self.pos != START_POS:
             if direction.lower() == "down":
                 self.pos = (self.pos[0],self.pos[1]+2)
@@ -95,7 +99,7 @@ while True:
         ball.move("down")
 
     if random.randint(0,1000)>995:
-        colorwheel.append(ColorWheel((surface.get_width()//2-5,0), 10))
+        colorwheel.append(ColorWheel((surface.get_width()//2-7,0), 10))
     for i in colorwheel:
         if ball.rect.colliderect(i.rect):
             i.changeBallColor(ball)
