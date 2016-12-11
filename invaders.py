@@ -63,6 +63,19 @@ class Explosion:
             screen.blit(self.imgList[6], self.boomspot)
         self.time-=1
 
+class Bullet:
+    def __init__(self, x, y):
+        position = (x, y)
+        self.velocity = [0,-3]
+        self.color = (255,0,0)
+        self.rect = pygame.Rect(position, (4,4))
+
+    def display(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect)
+
+    def move(self):
+        self.rect.move_ip(self.velocity[0], self.velocity[1])
+
 pygame.init()
 pygame.mixer.music.load("sounds/starboy-8bit.mp3")
 boom = pygame.mixer.Sound("sounds/boom.wav")
@@ -128,7 +141,7 @@ while True:
                 if event.key == pygame.K_DOWN:
                     down = True
                 if event.key == pygame.K_SPACE:
-                    bullets.append(pygame.Rect(ship.rect.centerx, ship.rect.centery, 4, 4))
+                    bullets.append(Bullet(ship.rect.centerx, ship.rect.centery))
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
@@ -166,10 +179,10 @@ while True:
             if i.rect.colliderect(ship.rect):
                 gameover = True
             for c in bullets:
-                if i.rect.colliderect(c):
+                if i.rect.colliderect(c.rect):
                     particles.remove(i)
                     bullets.remove(c)
-                    boomspot = (c.centerx-30, c.centery-30)
+                    boomspot = (c.rect.centerx-30, c.rect.centery-30)
                     expl.append(Explosion(boomspot))
                     boom.play()
                     score+=1
@@ -181,9 +194,8 @@ while True:
                     i.explode(screen)
 
         for b in bullets:
-            pygame.draw.rect(screen, (255,0,0), b)
-            b.move_ip(0, -3)
-
+            b.display(screen)
+            b.move()
 
         ship.display(screen)
         pygame.display.update()
