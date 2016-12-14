@@ -1,13 +1,37 @@
+import os
 import pygame
 import random
 import sys
 
+import socket
+
+class ClientSocket():
+    def __init__(self, sock=None):
+        if sock == None:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        else:
+            self.socket = sock
+        self.msglen = 1024
+
+    def connect(self, host, port):
+        self.socket.connect((host, port))
+
+    def send(self, message):
+        totalSent = 0
+        while totalSent < len(message):
+            msg = message[totalSent:]
+            sent = self.socket.send(bytes(msg, "utf_8"))
+            if sent == 0:
+                raise RuntimeError("Nothing sent, connection closed")
+            totalSent += sent
+
+
 class Particle:
-    def __init__(self, width):
-        position = (random.randint(0, width), 0)
+    def __init__(self, pos):
+        self.position = pos
         self.velocity = [0, 3]
         self.color = (255, 255, 255)
-        self.rect = pygame.Rect(position, (4,4))
+        self.rect = pygame.Rect(self.position, (4,4))
 
     def display(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
@@ -76,7 +100,10 @@ class Bullet:
     def move(self):
         self.rect.move_ip(self.velocity[0], self.velocity[1])
 
+
+
 pygame.init()
+
 pygame.mixer.music.load("sounds/starboy-8bit.mp3")
 boom = pygame.mixer.Sound("sounds/boom.wav")
 screen = pygame.display.set_mode((480, 640))
@@ -152,6 +179,14 @@ while True:
                     up = False
                 if event.key == pygame.K_DOWN:
                     down = False
+        client = ClientSocket()
+        client.connect('',5000)
+        pos = client.socket.recv(1024)
+        pos = pos.decode("utf_8")
+
+        pos = int(pos)
+        if random.randint(0,1000) <= difficulty:
+            particles.append(Particle((pos, 0)))
 
         if left:
             ship.left()
@@ -162,8 +197,8 @@ while True:
         if down:
             ship.down()
 
-        if random.randint(0,1000) <= difficulty:
-            particles.append(Particle(screen.get_width()))
+
+
 
         if gameover == True:
             break
