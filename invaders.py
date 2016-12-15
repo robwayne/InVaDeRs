@@ -115,7 +115,8 @@ cont = False
 playing = False
 hit = False
 expl = []
-
+client = ClientSocket()
+client.connect('',5000)
 while True:
     cont = False
     while True:
@@ -153,8 +154,13 @@ while True:
     gameover = False
     score = 0
     replay = False
-
+    timer = 0
+    client.send("ready")
     while True:
+        start = client.socket.recv(7).decode('utf_8')
+        if start == 'start':
+            break
+    while start == 'start':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
@@ -179,14 +185,14 @@ while True:
                     up = False
                 if event.key == pygame.K_DOWN:
                     down = False
-        client = ClientSocket()
-        client.connect('',5000)
-        pos = client.socket.recv(1024)
+        client.send('a')
+        pos = client.socket.recv(4)
         pos = pos.decode("utf_8")
-
+        if pos == "dead":
+            break
         pos = int(pos)
-        if random.randint(0,1000) <= difficulty:
-            particles.append(Particle((pos, 0)))
+        print(pos)
+        particles.append(Particle((pos, 0)))
 
         if left:
             ship.left()
@@ -197,10 +203,8 @@ while True:
         if down:
             ship.down()
 
-
-
-
         if gameover == True:
+            client.send("dead")
             break
 
         if playing == False:
