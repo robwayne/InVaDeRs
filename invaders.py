@@ -2,6 +2,7 @@ import os
 import pygame
 import random
 import sys
+import time
 
 import socket
 
@@ -156,9 +157,20 @@ while True:
     replay = False
     timer = 0
     client.send("ready")
+    message = "Waiting on other players..."
+    text = font.render(message, True, (255,255,255))
     while True:
         start = client.socket.recv(7).decode('utf_8')
+        screen.fill((0,0,0))
+        screen.blit(text ,((screen.get_width()//2)-(len(message)*4), (screen.get_height()//2)-40))
+        pygame.display.update()
         if start == 'start':
+            message = "Player connected."
+            text = font.render(message, True, (255,255,255))
+            screen.fill((0,0,0))
+            screen.blit(text ,((screen.get_width()//2)-(len(message)*4), (screen.get_height()//2)-40))
+            pygame.display.update()
+            time.sleep(0.75)
             break
     while start == 'start':
         for event in pygame.event.get():
@@ -185,13 +197,17 @@ while True:
                     up = False
                 if event.key == pygame.K_DOWN:
                     down = False
-        client.send('a')
+
+        time.sleep(0.02)
+        client.send("a")
         pos = client.socket.recv(4)
         pos = pos.decode("utf_8")
         if pos == "dead":
+            print("Player 2 died")
+            time.sleep(0.02)
             break
+
         pos = int(pos)
-        print(pos)
         particles.append(Particle((pos, 0)))
 
         if left:
@@ -205,6 +221,7 @@ while True:
 
         if gameover == True:
             client.send("dead")
+            time.sleep(0.05)
             break
 
         if playing == False:
@@ -239,6 +256,12 @@ while True:
         ship.display(screen)
         pygame.display.update()
 
+    client.send(str(client.socket.getsockname())+','+str(score))
+
+    p2Score = client.socket.recv(4).decode("utf_8")
+    print(p2Score)
+
+    print("entering while")
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -253,15 +276,40 @@ while True:
             playing=False
         if hiScore<score:
             hiScore = score
-
-        screen.fill((0,0,0))
-        text = font.render("Game Over", True, (255,255,255))
-        screen.blit(text ,((screen.get_width()//2)-50, (screen.get_height()//2)-40))
-        text = font.render("Score: "+str(score), True, (255,255,255))
-        screen.blit(text ,((screen.get_width()//2)-40, (screen.get_height()//2)-20))
-        text = font.render("High Score: "+str(hiScore), True, (255,255,255))
-        screen.blit(text ,((screen.get_width()//2)-60, (screen.get_height()//2)+0))
-        text = font.render("Press SPACE To Replay", True, (255,255,255))
-        screen.blit(text ,((screen.get_width()//2)-90, (screen.get_height()//2)+20))
+        print("inside while")
+        print("Player 2 Score: "+p2Score)
+        if pos == 'dead':
+            screen.fill((0,0,0))
+            message = "You Won! Player 2 Died!"
+            text = font.render(message, True, (255,255,255))
+            screen.blit(text, ((screen.get_width()-len(message)*8)//2, (screen.get_height()//2)-60))
+            msgLen, length = len("Your Score: "+str(score)), len("Your Score: ")
+            text = font.render("Your Score: ", True, (255,255,255))
+            pos1 = (screen.get_width()-msgLen*8)//2
+            screen.blit(text, (pos1, (screen.get_height()//2)-40))
+            text = font.render(str(score), True, (0,255,0))
+            screen.blit(text,(pos1+(length*8), (screen.get_height()//2-40)))
+            msgLen, length = len("Player 2's Score: "+p2Score), len("Player 2's Score: ")
+            text = font.render("Player 2's Score: ", True, (255,255,255))
+            pos1 = (screen.get_width()-msgLen*8)//2
+            screen.blit(text, (pos1, (screen.get_height()//2)-20))
+            text = font.render(p2Score, True, (255,0,0))
+            screen.blit(text, (pos1+(length*8), (screen.get_height()//2-20)))
+            msg = "High Score: "+str(hiScore)
+            text = font.render(msg, True, (255,255,255))
+            screen.blit(text ,((screen.get_width()-(len(msg)*8))//2, screen.get_height()//2))
+            msg = "Press SPACE To Replay"
+            text = font.render(msg, True, (255,255,255))
+            screen.blit(text ,((screen.get_width()-(len(msg)*8))//2, (screen.get_height()//2)+20))
+        else:
+            screen.fill((0,0,0))
+            text = font.render("You Lost", True, (255,255,255))
+            screen.blit(text ,((screen.get_width()//2)-50, (screen.get_height()//2)-40))
+            text = font.render("Score: "+str(score), True, (255,255,255))
+            screen.blit(text ,((screen.get_width()//2)-40, (screen.get_height()//2)-20))
+            text = font.render("High Score: "+str(hiScore), True, (255,255,255))
+            screen.blit(text ,((screen.get_width()//2)-60, (screen.get_height()//2)+0))
+            text = font.render("Press SPACE To Replay", True, (255,255,255))
+            screen.blit(text ,((screen.get_width()//2)-90, (screen.get_height()//2)+20))
 
         pygame.display.update()

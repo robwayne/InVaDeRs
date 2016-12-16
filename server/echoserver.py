@@ -7,10 +7,11 @@ import time
 clientlist = []
 lis = []
 msglist = []
+scoreboard = []
 for i in range(1000):
     lis.append(str(random.randrange(640)))
 
-def on_new_client(clientsocket):
+def newClient(clientsocket):
     global lis
     global clientlist
     global msglist
@@ -45,6 +46,21 @@ def on_new_client(clientsocket):
             continue
 
 
+    while True:
+        global scoreboard
+        p2Score = client.recv(64).decode("utf_8")
+        print("Player2 score: ",p2Score)
+        p2Score = p2Score.split(',')
+        address = (p2Score[0]+","+p2Score[1])
+        print("Address: ",address)
+        print(client.getsockname())
+        scoreboard.append([p2Score[0].replace("(", "").replace("'", "").replace("'", ""), p2Score[2]])
+        for score in scoreboard:
+            if score[0] != client.getsockname()[0]:
+                print("address0: ",score[0], " clientsockname[0]: ", client.getsockname()[0])
+                print("p2score: ",score[1])
+                client.send(bytes(score[1], 'utf_8'))
+
 host = ''
 port = 5000
 backlog = 5
@@ -68,7 +84,6 @@ while True:
             addlist.append(clientInfo[0].getsockname)
             clientlist.append(clientInfo)
             new = True
-    #print(len(clientlist))
     if new:
         print('thread started')
-        _thread.start_new_thread(on_new_client, (clientlist[-1][0],))
+        _thread.start_new_thread(newClient, (clientlist[-1][0],))
