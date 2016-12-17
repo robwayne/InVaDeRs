@@ -250,6 +250,7 @@ while True:
             playing = True
 
         background.display(screen)
+
         for i in particles:
             i.display(screen)
             i.rect.move_ip(i.velocity[0], i.velocity[1])
@@ -276,6 +277,8 @@ while True:
             b.move()
 
         ship.display(screen)
+        text = font.render('Score: '+str(score), True, (255,255,255))
+        screen.blit(text, (300,10))
         pygame.display.update()
 
     message = "Waiting on other players to die..."
