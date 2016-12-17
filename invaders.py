@@ -7,6 +7,7 @@ import time
 import socket
 
 class ClientSocket():
+ 
     def __init__(self, sock=None):
         if sock == None:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,7 +29,11 @@ class ClientSocket():
 
 
 class Background:
+    
     def __init__(self):
+        '''
+        Loads the images for the background into a list, takes no argument
+        '''
         self.pos = (0,0)
         self.imageList = []
         self.time = 100
@@ -36,6 +41,10 @@ class Background:
             self.imageList.append(pygame.image.load("images/backgroundset/frame_"+str(i)+"_delay-0.25s.gif"))
 
     def display(self, screen):
+        '''
+        displays the background as an animated image, takes the surface of the game
+        as an argument.
+        '''
         if self.time == 0:
             self.time = 100
         if self.time > 80:
@@ -51,45 +60,78 @@ class Background:
         self.time-=1
 
 class Particle:
+    
     def __init__(self, pos):
+        '''
+        Takes a tuple and sets that as the particles position, creates the rectangle for
+        the particle and also loads the image for the particle
+        '''
         self.position = pos
         self.velocity = [0, 3]
         self.color = (0, 0, 0)
         self.rect = pygame.Rect(self.position, (14,14))
         self.img = pygame.image.load('images/asteroid_01.png').convert()
         self.imgCentre = (self.rect.centerx-7, self.rect.centery-7)
+        
+        
     def display(self, screen):
+        '''
+        Blits the image to the screen in the position of the rectangle object
+        '''
         self.imgCentre = (self.rect.centerx-7, self.rect.centery-7)
         screen.blit(self.img, self.imgCentre)
 
 
 class Ship:
     def __init__(self, img, screen):
+        '''
+        creates the rectangle for the ship an sets the image that was loaded in the main
+        function of the game as the image of the ship
+        '''
         self.img = img
         self.rect = pygame.Rect(screen.get_width()//2, screen.get_height()-40, 40, 40)
         self.imgCentre = (self.rect.centerx-20, self.rect.centery-20)
 
     def left(self):
+        '''
+        moves the ship to the left, takes no arguments
+        '''
         self.rect.move_ip(-3, 0)
         self.imgCentre = (self.rect.centerx-20, self.rect.centery-20)
 
     def right(self):
+        '''
+        moves the ship to the right, takes no arguments
+        '''
         self.rect.move_ip(3, 0)
         self.imgCentre = (self.rect.centerx-20, self.rect.centery-20)
 
     def up(self):
+        '''
+        moves the ship up, takes no arguments
+        '''
         self.rect.move_ip(0, -3)
         self.imgCentre = (self.rect.centerx-20, self.rect.centery-20)
 
     def down(self):
+        '''
+        moves the ship down, takes no arguments
+        '''
         self.rect.move_ip(0, 6)
         self.imgCentre = (self.rect.centerx-20, self.rect.centery-20)
 
     def display(self, screen):
+        '''
+        blits the ship to the screen, takes the surface of the game as the argument
+        '''
         screen.blit(self.img, self.imgCentre)
 
 class Explosion:
     def __init__(self, boomspot):
+        '''
+        Loads the images for the explosions into a list, takes a position tuple
+        as the argument
+        '''
         self.time = 40
         self.boomspot = boomspot
         self.imgList = []
@@ -97,6 +139,10 @@ class Explosion:
             self.imgList.append(pygame.image.load('images/explosionset/frame_'+str(i)+'_delay-0.1s.gif').convert())
 
     def explode(self, screen):
+        '''
+        displays the explosion as an animated image on the screen for a certain number of 
+        time, takes game surface as the argument
+        '''
         if self.time>35:
             screen.blit(self.imgList[0], self.boomspot)
         elif self.time>30:
@@ -115,16 +161,28 @@ class Explosion:
 
 class Bullet:
     def __init__(self, x, y):
+        '''
+        creates a rectangle and loads an image for the bullet, takes two integers as 
+        the arguments
+        '''
         position = (x, y)
         self.velocity = [0,-3]
         self.color = (255,0,0)
         self.rect = pygame.Rect(position, (4,4))
         self.img = pygame.image.load('images/bullet.png').convert_alpha()
         self.imgCentre = (self.rect.centerx-2, self.rect.centery-2)
+        
     def display(self, screen):
+        '''
+        blits the bullet image to the screen, takes game surface as the argument
+        '''
         self.imgCentre = (self.rect.centerx-2, self.rect.centery-2)
         screen.blit(self.img, self.imgCentre)
+        
     def move(self):
+        '''
+        moves the bullet according to the velocity attribute, takes no arguments
+        '''
         self.rect.move_ip(self.velocity[0], self.velocity[1])
 
 
@@ -139,18 +197,21 @@ font = pygame.font.Font(None, 24)
 ship = Ship(img, screen)
 
 
-hiScore = 0 #write to file
+hiScore = 0
 cont = False
 playing = False
 hit = False
 expl = []
 replay = False
 client = ClientSocket()
-client.connect('',5000)
+client.connect('',5000) #if not host, enter host's IP address as a string in the first parameter
 letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o','p','q','r','s','t','u','v','w','x','y','z']
 name = []
+
+#this loop handles replayability, so all game functions are within
 while True:
     cont = False
+    #this loop is for the home screen, allows entry of name
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -168,17 +229,17 @@ while True:
         if playing == False:
             pygame.mixer.music.play(-1)
             playing = True
-        screen.fill((165,20,80))
+        background.display(screen)
         text = font.render("InVaDeRs", True, (255,255,255))
-        screen.blit(text ,((screen.get_width()//2)-40, (screen.get_height()//2)-10))
+        screen.blit(text ,((screen.get_width()//2)-40, (screen.get_height()//2)-30))
         namestring = ''
         namestring = namestring.join(name)
         data = font.render(namestring, True, (255,255,255))
         enterthing = font.render("Enter name:", True, (255,255,255))
-        screen.blit(enterthing, (240,320))
-        screen.blit(data, (0,340))
-        text = font.render("Press SPACE To Ready Up", True, (255,255,255))
-        screen.blit(text ,((screen.get_width()//2)-110, (screen.get_height()//2)+30))
+        screen.blit(enterthing, (190,320))
+        screen.blit(data, (150,350))
+        text = font.render("Press ENTER To Ready Up", True, (255,255,255))
+        screen.blit(text ,((screen.get_width()//2)-110, (screen.get_height()//2)+60))
         pygame.display.update()
 
     left = False
@@ -191,9 +252,10 @@ while True:
     score = 0
     replay = False
     timer = 0
-    client.send("ready")
+    client.send("ready") #tells server this player is ready
     message = "Waiting on other players..."
     text = font.render(message, True, (255,255,255))
+    #this is an intermediate screen while the server waits for second player to connect
     while True:
         start = client.socket.recv(7).decode('utf_8')
         background.display(screen)
@@ -207,6 +269,8 @@ while True:
             pygame.display.update()
             time.sleep(0.75)
             break
+    #main game loop, receives particle position from server and adds to the particle list
+    #when player dies it send a message to the server
     while start == 'start':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -234,7 +298,9 @@ while True:
                     down = False
 
         time.sleep(0.02)
+        #sends 'a' meaning alive so server knows this player hasn't died yet
         client.send("a")
+        #receives integer from server and stores it in pos variable used to generate a new particle
         pos = client.socket.recv(4)
         pos = pos.decode("utf_8")
         if gameover == True:
@@ -300,6 +366,7 @@ while True:
 
     message = "Waiting on other players to die..."
     text = font.render(message, True, (255,255,255))
+    #intermediate screen that displays while server is waiting for other player to connect
     while True:
         bothdead = client.socket.recv(3).decode('utf_8')
         background.display(screen)
@@ -307,8 +374,9 @@ while True:
         pygame.display.update()
         if bothdead == 'yes':
             break
-
+    #when both players have died, sends the client's IP, score and nickname to the server
     client.send(str(client.socket.getsockname())+','+str(score)+','+namestring)
+    #receive scores from the server and breaks them down into lists containing the IP, score and nickname of all players
     data = client.socket.recv(80).decode("utf_8")
     y = data.split(',')
     scores = ['', '']
@@ -325,9 +393,10 @@ while True:
         else:
             p2Score = int(i[1])
             p2Name = i[2]
-
+    #send fin to the server to signify it has received the scores 
     client.send('fin')
 
+    #final loop that displays the who won the match nd each players scores
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -342,6 +411,8 @@ while True:
             playing=False
         if hiScore<score:
             hiScore = score
+        if hiScore<p2Score:
+            hiScore = p2Score
         if score>p2Score:
             message = "You Won!"
         elif p2Score>score:
