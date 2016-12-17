@@ -111,7 +111,7 @@ pygame.init()
 pygame.mixer.music.load("sounds/starboy-8bit.mp3")
 boom = pygame.mixer.Sound("sounds/boom.wav")
 screen = pygame.display.set_mode((480, 640))
-img = pygame.image.load('images/space-ship.png').convert_alpha()
+img = pygame.image.load('images/xwing.png').convert_alpha()
 font = pygame.font.Font(None, 24)
 ship = Ship(img, screen)
 hiScore = 0
@@ -121,12 +121,8 @@ hit = False
 expl = []
 replay = False
 client = ClientSocket()
-client.connect('',5000)
+client.connect('10.225.95.146',5000)
 while True:
-    if replay == True:
-        client = ClientSocket()
-        client.connect('',5000)
-        replay = False
     cont = False
     while True:
         for event in pygame.event.get():
@@ -289,8 +285,6 @@ while True:
             p2Score = int(i[1])
 
     client.send('fin')
-    client.socket.shutdown(1)
-    client.socket.close()
 
     print("entering while")
     while True:

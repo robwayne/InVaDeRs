@@ -16,69 +16,62 @@ def newClient(clientsocket):
     global clientlist
     global msglist
     global scoreboard
-    i = 0
-    c = 0
-    data = clientsocket.recv(8).decode('utf_8')
-    if data == 'ready':
-        msglist.append(data)
     while True:
-        if len(msglist)>1:
-            clientsocket.send(bytes('start', 'utf_8'))
-            break
-        else:
-            clientsocket.send(bytes('waiting', 'utf_8'))
-            time.sleep(0.4)
-    while (len(msglist)>1):
-        client = clientsocket
-        status = clientsocket.recv(4).decode('utf_8')
-        if status == 'dead':
-            msglist.append('dead')
-            break
-        i+=1
-        if i==1000:
-            i = 0
-        if c==10:
-            c=0
+        i = 0
+        c = 0
+        data = clientsocket.recv(8).decode('utf_8')
+        if data == 'ready':
+            msglist.append(data)
+        while True:
+            if len(msglist)>1:
+                clientsocket.send(bytes('start', 'utf_8'))
+                break
+            else:
+                clientsocket.send(bytes('waiting', 'utf_8'))
+                time.sleep(0.4)
+        while (len(msglist)>1):
+            client = clientsocket
+            status = clientsocket.recv(4).decode('utf_8')
+            if status == 'dead':
+                msglist.append('dead')
+                break
+            i+=1
+            if i==1000:
+                i = 0
             try:
                 client.send(bytes(lis[i], 'utf_8'))
                 time.sleep(0.03)
             except:
                 continue
-        c+=1
-    while True:
-        if msglist.count('dead')==len(clientlist):
-            client.send(bytes('yes', 'utf_8'))
-            break
-        else:
-            client.send(bytes('no', 'utf_8'))
-            time.sleep(0.4)
+            c+=1
+        while True:
+            if msglist.count('dead')==len(clientlist):
+                client.send(bytes('yes', 'utf_8'))
+                break
+            else:
+                client.send(bytes('no', 'utf_8'))
+                time.sleep(0.4)
 
-    while True:
-        p2Score = client.recv(64).decode("utf_8")
-        p2Score = p2Score.split(',')
-        scoreboard.append([p2Score[0].replace("(", "").replace("'", "").replace("'", ""), p2Score[2]])
-        break
-    while True:
-        if len(scoreboard)==len(clientlist):
-            client.send(bytes(str(scoreboard), 'utf_8'))
+        while True:
+            p2Score = client.recv(64).decode("utf_8")
+            p2Score = p2Score.split(',')
+            scoreboard.append([p2Score[0].replace("(", "").replace("'", "").replace("'", ""), p2Score[2]])
             break
+        while True:
+            if len(scoreboard)==len(clientlist):
+                client.send(bytes(str(scoreboard), 'utf_8'))
+                break
 
-    data = client.recv(3).decode('utf_8')
-    if data == 'fin':
-        msglist.append('fin')
-    while True:
-        if msglist.count('fin')==len(clientlist):
-            clientlist = []
-            addlist = []
-            scoreboard = []
-            msglist = []
-            client.shutdown(1)
-            client.close()
-            break
-        elif msglist == []:
-            client.shutdown(1)
-            client.close()
-            break
+        data = client.recv(3).decode('utf_8')
+        if data == 'fin':
+            msglist.append('fin')
+        while True:
+            if msglist.count('fin')==len(clientlist):
+                scoreboard = []
+                msglist = []
+                break
+            elif msglist == []:
+                break
 
 host = ''
 port = 5000
