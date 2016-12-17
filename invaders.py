@@ -147,6 +147,7 @@ expl = []
 replay = False
 client = ClientSocket()
 client.connect('',5000)
+name = []
 while True:
     cont = False
     while True:
@@ -154,8 +155,13 @@ while True:
             if event.type == pygame.QUIT:
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key==pygame.K_SPACE:
+                if event.key==pygame.K_RETURN:
                     cont = True
+                if str(pygame.key.name(event.key)) in letters:
+                    name.append(str(pygame.key.name(event.key)))
+                elif event.key == pygame.K_BACKSPACE:
+                    if len(name)>0:
+                        del name[-1]
         if cont:
             break
         if playing == False:
@@ -164,6 +170,12 @@ while True:
         screen.fill((165,20,80))
         text = font.render("InVaDeRs", True, (255,255,255))
         screen.blit(text ,((screen.get_width()//2)-40, (screen.get_height()//2)-10))
+        namestring = ''
+        namestring = namestring.join(name)
+        data = font.render(namestring, True, (255,255,255))
+        enterthing = font.render("Enter name:", True, (255,255,255))
+        screen.blit(enterthing, (240,320))
+        screen.blit(data, (0,340))
         text = font.render("Press SPACE To Ready Up", True, (255,255,255))
         screen.blit(text ,((screen.get_width()//2)-110, (screen.get_height()//2)+30))
         pygame.display.update()
@@ -278,7 +290,7 @@ while True:
 
         ship.display(screen)
         text = font.render('Score: '+str(score), True, (255,255,255))
-        screen.blit(text, (300,10))
+        screen.blit(text, (400,10))
         pygame.display.update()
 
     message = "Waiting on other players to die..."
@@ -291,15 +303,15 @@ while True:
         if bothdead == 'yes':
             break
 
-    client.send(str(client.socket.getsockname())+','+str(score))
+    client.send(str(client.socket.getsockname())+','+str(score)+','+namestring)
     data = client.socket.recv(80).decode("utf_8")
     y = data.split(',')
     scores = ['', '']
     for i in range(2):
         if i == 0:
-            scores[i] = y[0]+','+y[1]
+            scores[i] = y[0]+','+y[1]+','+y[2]
         elif i ==1:
-            scores[i] = y[2]+','+y[3]
+            scores[i] = y[3]+','+y[4]+','+y[5]
         scores[i] = scores[i].replace('[', '').replace(']', '').replace("'", "").replace(' ', '')
         scores[i] = scores[i].split(',')
     for i in scores:
@@ -307,6 +319,7 @@ while True:
             continue
         else:
             p2Score = int(i[1])
+            p2Name = i[2]
 
     client.send('fin')
 
@@ -339,8 +352,8 @@ while True:
         screen.blit(text, (pos1, (screen.get_height()//2)-40))
         text = font.render(str(score), True, (0,255,0))
         screen.blit(text,(pos1+(length*8), (screen.get_height()//2-40)))
-        msgLen, length = len("Player 2's Score: "+str(p2Score)), len("Player 2's Score: ")
-        text = font.render("Player 2's Score: ", True, (255,255,255))
+        msgLen, length = len(p2Name+"'s Score: "+str(p2Score)), len("Player 2's Score: ")
+        text = font.render(p2Name+"'s Score: ", True, (255,255,255))
         pos1 = (screen.get_width()-msgLen*8)//2
         screen.blit(text, (pos1, (screen.get_height()//2)-20))
         text = font.render(str(p2Score), True, (255,0,0))
