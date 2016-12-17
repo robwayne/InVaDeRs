@@ -31,11 +31,14 @@ class Particle:
     def __init__(self, pos):
         self.position = pos
         self.velocity = [0, 3]
-        self.color = (255, 255, 255)
-        self.rect = pygame.Rect(self.position, (4,4))
-
+        self.color = (0, 0, 0)
+        self.rect = pygame.Rect(self.position, (14,14))
+        self.img = pygame.image.load('images/asteroid_01.png').convert()
+        self.imgCentre = (self.rect.centerx-7, self.rect.centery-7)
     def display(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
+        self.imgCentre = (self.rect.centerx-7, self.rect.centery-7)
+        screen.blit(self.img, self.imgCentre)
+
 
 class Ship:
     def __init__(self, img, screen):
@@ -60,7 +63,6 @@ class Ship:
         self.imgCentre = (self.rect.centerx-20, self.rect.centery-20)
 
     def display(self, screen):
-        pygame.draw.rect(screen, (255,255,255), self.rect)
         screen.blit(self.img, self.imgCentre)
 
 class Explosion:
@@ -94,10 +96,11 @@ class Bullet:
         self.velocity = [0,-3]
         self.color = (255,0,0)
         self.rect = pygame.Rect(position, (4,4))
-
+        self.img = pygame.image.load('images/bullet.png').convert_alpha()
+        self.imgCentre = (self.rect.centerx-2, self.rect.centery-2)
     def display(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
-
+        self.imgCentre = (self.rect.centerx-2, self.rect.centery-2)
+        screen.blit(self.img, self.imgCentre)
     def move(self):
         self.rect.move_ip(self.velocity[0], self.velocity[1])
 
@@ -108,7 +111,7 @@ pygame.init()
 pygame.mixer.music.load("sounds/starboy-8bit.mp3")
 boom = pygame.mixer.Sound("sounds/boom.wav")
 screen = pygame.display.set_mode((480, 640))
-img = pygame.image.load('images/space-ship.png').convert()
+img = pygame.image.load('images/space-ship.png').convert_alpha()
 font = pygame.font.Font(None, 24)
 ship = Ship(img, screen)
 hiScore = 0
@@ -116,34 +119,32 @@ cont = False
 playing = False
 hit = False
 expl = []
+replay = False
 client = ClientSocket()
 client.connect('',5000)
 while True:
+    if replay == True:
+        client = ClientSocket()
+        client.connect('',5000)
+        replay = False
     cont = False
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key==pygame.K_1:
-                    difficulty = 100
-                    cont = True
-                if event.key==pygame.K_2:
-                    difficulty = 150
-                    cont = True
-                if event.key==pygame.K_3:
-                    difficulty = 200
+                if event.key==pygame.K_SPACE:
                     cont = True
         if cont:
             break
         if playing == False:
             pygame.mixer.music.play(-1)
             playing = True
-        screen.fill((0,0,0))
+        screen.fill((165,20,80))
         text = font.render("InVaDeRs", True, (255,255,255))
-        screen.blit(text ,((screen.get_width()//2)-40, screen.get_height()//2))
-        text = font.render("Select Difficulty: 1. Easy  2. Medium  3. Hard", True, (255,255,255))
-        screen.blit(text ,((screen.get_width()//2)-160, (screen.get_height()//2)+40))
+        screen.blit(text ,((screen.get_width()//2)-40, (screen.get_height()//2)-10))
+        text = font.render("Press SPACE To Ready Up", True, (255,255,255))
+        screen.blit(text ,((screen.get_width()//2)-110, (screen.get_height()//2)+30))
         pygame.display.update()
 
     left = False
@@ -202,27 +203,31 @@ while True:
         client.send("a")
         pos = client.socket.recv(4)
         pos = pos.decode("utf_8")
-        if pos == "dead":
-            print("Player 2 died")
-            time.sleep(0.02)
-            break
-
-        pos = int(pos)
-        particles.append(Particle((pos, 0)))
-
-        if left:
-            ship.left()
-        if right:
-            ship.right()
-        if up:
-            ship.up()
-        if down:
-            ship.down()
+        # if pos == "dead":
+        #     print("Player 2 died")
+        #     time.sleep(0.02)
+        #     gameover = True
 
         if gameover == True:
             client.send("dead")
             time.sleep(0.05)
             break
+
+        if left:
+            if ship.rect.left>0:
+                ship.left()
+        if right:
+            if ship.rect.right<screen.get_width():
+                ship.right()
+        if up:
+            if ship.rect.top>0:
+                ship.up()
+        if down:
+            if ship.rect.bottom<screen.get_height:
+                ship.down()
+
+        pos = int(pos)
+        particles.append(Particle((pos, 0)))
 
         if playing == False:
             pygame.mixer.music.play(-1)
@@ -256,10 +261,36 @@ while True:
         ship.display(screen)
         pygame.display.update()
 
-    client.send(str(client.socket.getsockname())+','+str(score))
+    message = "Waiting on other players to die..."
+    text = font.render(message, True, (255,255,255))
+    while True:
+        bothdead = client.socket.recv(3).decode('utf_8')
+        screen.fill((0,0,0))
+        screen.blit(text ,((screen.get_width()//2)-(len(message)*4), (screen.get_height()//2)-40))
+        pygame.display.update()
+        if bothdead == 'yes':
+            break
 
-    p2Score = client.socket.recv(4).decode("utf_8")
-    print(p2Score)
+    client.send(str(client.socket.getsockname())+','+str(score))
+    data = client.socket.recv(80).decode("utf_8")
+    y = data.split(',')
+    scores = ['', '']
+    for i in range(2):
+        if i == 0:
+            scores[i] = y[0]+','+y[1]
+        elif i ==1:
+            scores[i] = y[2]+','+y[3]
+        scores[i] = scores[i].replace('[', '').replace(']', '').replace("'", "").replace(' ', '')
+        scores[i] = scores[i].split(',')
+    for i in scores:
+        if i[0]==client.socket.getsockname()[0]:
+            continue
+        else:
+            p2Score = int(i[1])
+
+    client.send('fin')
+    client.socket.shutdown(1)
+    client.socket.close()
 
     print("entering while")
     while True:
@@ -277,39 +308,33 @@ while True:
         if hiScore<score:
             hiScore = score
         print("inside while")
-        print("Player 2 Score: "+p2Score)
-        if pos == 'dead':
-            screen.fill((0,0,0))
-            message = "You Won! Player 2 Died!"
-            text = font.render(message, True, (255,255,255))
-            screen.blit(text, ((screen.get_width()-len(message)*8)//2, (screen.get_height()//2)-60))
-            msgLen, length = len("Your Score: "+str(score)), len("Your Score: ")
-            text = font.render("Your Score: ", True, (255,255,255))
-            pos1 = (screen.get_width()-msgLen*8)//2
-            screen.blit(text, (pos1, (screen.get_height()//2)-40))
-            text = font.render(str(score), True, (0,255,0))
-            screen.blit(text,(pos1+(length*8), (screen.get_height()//2-40)))
-            msgLen, length = len("Player 2's Score: "+p2Score), len("Player 2's Score: ")
-            text = font.render("Player 2's Score: ", True, (255,255,255))
-            pos1 = (screen.get_width()-msgLen*8)//2
-            screen.blit(text, (pos1, (screen.get_height()//2)-20))
-            text = font.render(p2Score, True, (255,0,0))
-            screen.blit(text, (pos1+(length*8), (screen.get_height()//2-20)))
-            msg = "High Score: "+str(hiScore)
-            text = font.render(msg, True, (255,255,255))
-            screen.blit(text ,((screen.get_width()-(len(msg)*8))//2, screen.get_height()//2))
-            msg = "Press SPACE To Replay"
-            text = font.render(msg, True, (255,255,255))
-            screen.blit(text ,((screen.get_width()-(len(msg)*8))//2, (screen.get_height()//2)+20))
+        print("Player 2 Score: "+str(p2Score))
+        if score>p2Score:
+            message = "You Won!"
+        elif p2Score>score:
+            message = "You Lost!"
         else:
-            screen.fill((0,0,0))
-            text = font.render("You Lost", True, (255,255,255))
-            screen.blit(text ,((screen.get_width()//2)-50, (screen.get_height()//2)-40))
-            text = font.render("Score: "+str(score), True, (255,255,255))
-            screen.blit(text ,((screen.get_width()//2)-40, (screen.get_height()//2)-20))
-            text = font.render("High Score: "+str(hiScore), True, (255,255,255))
-            screen.blit(text ,((screen.get_width()//2)-60, (screen.get_height()//2)+0))
-            text = font.render("Press SPACE To Replay", True, (255,255,255))
-            screen.blit(text ,((screen.get_width()//2)-90, (screen.get_height()//2)+20))
+            message = "It's a draw!"
+        screen.fill((0,0,0))
+        text = font.render(message, True, (255,255,255))
+        screen.blit(text, ((screen.get_width()-len(message)*8)//2, (screen.get_height()//2)-60))
+        msgLen, length = len("Your Score: "+str(score)), len("Your Score: ")
+        text = font.render("Your Score: ", True, (255,255,255))
+        pos1 = (screen.get_width()-msgLen*8)//2
+        screen.blit(text, (pos1, (screen.get_height()//2)-40))
+        text = font.render(str(score), True, (0,255,0))
+        screen.blit(text,(pos1+(length*8), (screen.get_height()//2-40)))
+        msgLen, length = len("Player 2's Score: "+str(p2Score)), len("Player 2's Score: ")
+        text = font.render("Player 2's Score: ", True, (255,255,255))
+        pos1 = (screen.get_width()-msgLen*8)//2
+        screen.blit(text, (pos1, (screen.get_height()//2)-20))
+        text = font.render(str(p2Score), True, (255,0,0))
+        screen.blit(text, (pos1+(length*8), (screen.get_height()//2-20)))
+        msg = "High Score: "+str(hiScore)
+        text = font.render(msg, True, (255,255,255))
+        screen.blit(text ,((screen.get_width()-(len(msg)*8))//2, screen.get_height()//2))
+        msg = "Press SPACE To Replay"
+        text = font.render(msg, True, (255,255,255))
+        screen.blit(text ,((screen.get_width()-(len(msg)*8))//2, (screen.get_height()//2)+20))
 
         pygame.display.update()

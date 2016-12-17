@@ -15,9 +15,10 @@ def newClient(clientsocket):
     global lis
     global clientlist
     global msglist
+    global scoreboard
     i = 0
+    c = 0
     data = clientsocket.recv(8).decode('utf_8')
-    print(data)
     if data == 'ready':
         msglist.append(data)
     while True:
@@ -30,36 +31,54 @@ def newClient(clientsocket):
     while (len(msglist)>1):
         client = clientsocket
         status = clientsocket.recv(4).decode('utf_8')
-        print(status)
         if status == 'dead':
             msglist.append('dead')
-        if 'dead' in msglist:
-            client.send(bytes('dead', 'utf_8'))
             break
         i+=1
         if i==1000:
             i = 0
-        try:
-            client.send(bytes(lis[i], 'utf_8'))
-            time.sleep(0.03)
-        except:
-            continue
-
+        if c==10:
+            c=0
+            try:
+                client.send(bytes(lis[i], 'utf_8'))
+                time.sleep(0.03)
+            except:
+                continue
+        c+=1
+    while True:
+        if msglist.count('dead')==len(clientlist):
+            client.send(bytes('yes', 'utf_8'))
+            break
+        else:
+            client.send(bytes('no', 'utf_8'))
+            time.sleep(0.4)
 
     while True:
-        global scoreboard
         p2Score = client.recv(64).decode("utf_8")
-        print("Player2 score: ",p2Score)
         p2Score = p2Score.split(',')
-        address = (p2Score[0]+","+p2Score[1])
-        print("Address: ",address)
-        print(client.getsockname())
         scoreboard.append([p2Score[0].replace("(", "").replace("'", "").replace("'", ""), p2Score[2]])
-        for score in scoreboard:
-            if score[0] != client.getsockname()[0]:
-                print("address0: ",score[0], " clientsockname[0]: ", client.getsockname()[0])
-                print("p2score: ",score[1])
-                client.send(bytes(score[1], 'utf_8'))
+        break
+    while True:
+        if len(scoreboard)==len(clientlist):
+            client.send(bytes(str(scoreboard), 'utf_8'))
+            break
+
+    data = client.recv(3).decode('utf_8')
+    if data == 'fin':
+        msglist.append('fin')
+    while True:
+        if msglist.count('fin')==len(clientlist):
+            clientlist = []
+            addlist = []
+            scoreboard = []
+            msglist = []
+            client.shutdown(1)
+            client.close()
+            break
+        elif msglist == []:
+            client.shutdown(1)
+            client.close()
+            break
 
 host = ''
 port = 5000
@@ -77,13 +96,13 @@ while True:
     clientInfo = [c, addr]
     if addlist == []:
         addlist.append(clientInfo[0].getsockname())
-        clientlist.append(clientInfo)
+        clientlist.append(clientInfo[0])
         new = True
     else:
         if clientInfo[0].getsockname() not in addlist:
             addlist.append(clientInfo[0].getsockname)
-            clientlist.append(clientInfo)
+            clientlist.append(clientInfo[0])
             new = True
     if new:
-        print('thread started')
-        _thread.start_new_thread(newClient, (clientlist[-1][0],))
+        print('thread started with client: '+clientInfo[0].getsockname()[0])
+        _thread.start_new_thread(newClient, (clientlist[-1],))
