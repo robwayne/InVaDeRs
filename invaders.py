@@ -27,6 +27,29 @@ class ClientSocket():
             totalSent += sent
 
 
+class Background:
+    def __init__(self):
+        self.pos = (0,0)
+        self.imageList = []
+        self.time = 100
+        for i in range(5):
+            self.imageList.append(pygame.image.load("images/backgroundset/frame_"+str(i)+"_delay-0.25s.gif"))
+
+    def display(self, screen):
+        if self.time == 0:
+            self.time = 100
+        if self.time > 80:
+            screen.blit(self.imageList[0],self.pos)
+        elif self.time > 60:
+            screen.blit(self.imageList[1],self.pos)
+        elif self.time > 40:
+            screen.blit(self.imageList[2],self.pos)
+        elif self.time > 20:
+            screen.blit(self.imageList[3],self.pos)
+        elif self.time > 0:
+            screen.blit(self.imageList[4],self.pos)
+        self.time-=1
+
 class Particle:
     def __init__(self, pos):
         self.position = pos
@@ -107,21 +130,23 @@ class Bullet:
 
 
 pygame.init()
-
+background = Background()
 pygame.mixer.music.load("sounds/starboy-8bit.mp3")
 boom = pygame.mixer.Sound("sounds/boom.wav")
 screen = pygame.display.set_mode((480, 640))
 img = pygame.image.load('images/xwing.png').convert_alpha()
 font = pygame.font.Font(None, 24)
 ship = Ship(img, screen)
-hiScore = 0
+
+
+hiScore = 0 #write to file
 cont = False
 playing = False
 hit = False
 expl = []
 replay = False
 client = ClientSocket()
-client.connect('10.225.95.146',5000)
+client.connect('',5000)
 while True:
     cont = False
     while True:
@@ -158,13 +183,13 @@ while True:
     text = font.render(message, True, (255,255,255))
     while True:
         start = client.socket.recv(7).decode('utf_8')
-        screen.fill((0,0,0))
+        background.display(screen)
         screen.blit(text ,((screen.get_width()//2)-(len(message)*4), (screen.get_height()//2)-40))
         pygame.display.update()
         if start == 'start':
             message = "Player connected."
             text = font.render(message, True, (255,255,255))
-            screen.fill((0,0,0))
+            background.display(screen)
             screen.blit(text ,((screen.get_width()//2)-(len(message)*4), (screen.get_height()//2)-40))
             pygame.display.update()
             time.sleep(0.75)
@@ -199,11 +224,6 @@ while True:
         client.send("a")
         pos = client.socket.recv(4)
         pos = pos.decode("utf_8")
-        # if pos == "dead":
-        #     print("Player 2 died")
-        #     time.sleep(0.02)
-        #     gameover = True
-
         if gameover == True:
             client.send("dead")
             time.sleep(0.05)
@@ -229,7 +249,7 @@ while True:
             pygame.mixer.music.play(-1)
             playing = True
 
-        screen.fill((0,0,0))
+        background.display(screen)
         for i in particles:
             i.display(screen)
             i.rect.move_ip(i.velocity[0], i.velocity[1])
@@ -237,7 +257,8 @@ while True:
                 gameover = True
             for c in bullets:
                 if i.rect.colliderect(c.rect):
-                    particles.remove(i)
+                    if i in particles:
+                        particles.remove(i)
                     bullets.remove(c)
                     boomspot = (c.rect.centerx-30, c.rect.centery-30)
                     expl.append(Explosion(boomspot))
@@ -261,7 +282,7 @@ while True:
     text = font.render(message, True, (255,255,255))
     while True:
         bothdead = client.socket.recv(3).decode('utf_8')
-        screen.fill((0,0,0))
+        background.display(screen)
         screen.blit(text ,((screen.get_width()//2)-(len(message)*4), (screen.get_height()//2)-40))
         pygame.display.update()
         if bothdead == 'yes':
@@ -309,7 +330,7 @@ while True:
             message = "You Lost!"
         else:
             message = "It's a draw!"
-        screen.fill((0,0,0))
+        background.display(screen)
         text = font.render(message, True, (255,255,255))
         screen.blit(text, ((screen.get_width()-len(message)*8)//2, (screen.get_height()//2)-60))
         msgLen, length = len("Your Score: "+str(score)), len("Your Score: ")
