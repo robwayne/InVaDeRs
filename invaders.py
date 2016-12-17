@@ -7,7 +7,7 @@ import time
 import socket
 
 class ClientSocket():
- 
+
     def __init__(self, sock=None):
         if sock == None:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,7 +29,7 @@ class ClientSocket():
 
 
 class Background:
-    
+
     def __init__(self):
         '''
         Loads the images for the background into a list, takes no argument
@@ -60,7 +60,7 @@ class Background:
         self.time-=1
 
 class Particle:
-    
+
     def __init__(self, pos):
         '''
         Takes a tuple and sets that as the particles position, creates the rectangle for
@@ -72,8 +72,8 @@ class Particle:
         self.rect = pygame.Rect(self.position, (14,14))
         self.img = pygame.image.load('images/asteroid_01.png').convert()
         self.imgCentre = (self.rect.centerx-7, self.rect.centery-7)
-        
-        
+
+
     def display(self, screen):
         '''
         Blits the image to the screen in the position of the rectangle object
@@ -140,7 +140,7 @@ class Explosion:
 
     def explode(self, screen):
         '''
-        displays the explosion as an animated image on the screen for a certain number of 
+        displays the explosion as an animated image on the screen for a certain number of
         time, takes game surface as the argument
         '''
         if self.time>35:
@@ -162,7 +162,7 @@ class Explosion:
 class Bullet:
     def __init__(self, x, y):
         '''
-        creates a rectangle and loads an image for the bullet, takes two integers as 
+        creates a rectangle and loads an image for the bullet, takes two integers as
         the arguments
         '''
         position = (x, y)
@@ -171,14 +171,14 @@ class Bullet:
         self.rect = pygame.Rect(position, (4,4))
         self.img = pygame.image.load('images/bullet.png').convert_alpha()
         self.imgCentre = (self.rect.centerx-2, self.rect.centery-2)
-        
+
     def display(self, screen):
         '''
         blits the bullet image to the screen, takes game surface as the argument
         '''
         self.imgCentre = (self.rect.centerx-2, self.rect.centery-2)
         screen.blit(self.img, self.imgCentre)
-        
+
     def move(self):
         '''
         moves the bullet according to the velocity attribute, takes no arguments
@@ -197,7 +197,25 @@ font = pygame.font.Font(None, 24)
 ship = Ship(img, screen)
 
 
-hiScore = 0
+try:
+    fp = open("data/hiscore.txt", "r")
+    if fp:
+        line = fp.readline().strip()
+        if line.isnumeric():
+            Hscore = int(line)
+except IOError:
+    print("Creating hiscore file...")
+    try:
+        Hscore = 0
+        fp =  open("data/hiscore.txt", "w")
+        fp.write(str(Hscore))
+    except IOError:
+        raise Exception("Could not write to or open file: ")
+
+fp.close()
+
+
+hiScore = Hscore
 cont = False
 playing = False
 hit = False
@@ -393,7 +411,7 @@ while True:
         else:
             p2Score = int(i[1])
             p2Name = i[2]
-    #send fin to the server to signify it has received the scores 
+    #send fin to the server to signify it has received the scores
     client.send('fin')
 
     #final loop that displays the who won the match nd each players scores
@@ -441,4 +459,8 @@ while True:
         text = font.render(msg, True, (255,255,255))
         screen.blit(text ,((screen.get_width()-(len(msg)*8))//2, (screen.get_height()//2)+20))
 
+        fp = open("data/hiscore.txt", "w")
+        if fp:
+            fp.write(str(hiScore))
+        fp.close()
         pygame.display.update()
