@@ -223,7 +223,7 @@ while True:
             if ship.rect.top>0:
                 ship.up()
         if down:
-            if ship.rect.bottom<screen.get_height:
+            if ship.rect.bottom<screen.get_height():
                 ship.down()
 
         pos = int(pos)
