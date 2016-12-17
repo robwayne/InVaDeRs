@@ -146,7 +146,7 @@ hit = False
 expl = []
 replay = False
 client = ClientSocket()
-client.connect('10.225.95.146',5000)
+client.connect('',5000)
 letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o','p','q','r','s','t','u','v','w','x','y','z']
 name = []
 while True:
@@ -268,6 +268,9 @@ while True:
             i.display(screen)
             i.rect.move_ip(i.velocity[0], i.velocity[1])
             if i.rect.colliderect(ship.rect):
+                boomspot = (ship.rect.centerx-30, ship.rect.centery-30)
+                expl.append(Explosion(boomspot))
+                boom.play()
                 gameover = True
             for c in bullets:
                 if i.rect.colliderect(c.rect):
@@ -289,7 +292,8 @@ while True:
             b.display(screen)
             b.move()
 
-        ship.display(screen)
+        if not gameover:
+            ship.display(screen)
         text = font.render('Score: '+str(score), True, (255,255,255))
         screen.blit(text, (400,10))
         pygame.display.update()
