@@ -1,0 +1,14 @@
+In order for game to run a few things need to be done:
+
+First, two computers are needed to play this game, one computer will run both the invaders.py and
+server/echoserver.py file. Before the person who is not going to run the server file runs invaders.py,
+in line 207 add the IP address of the host as a string in the first parameter.
+
+Second, the sound functions in pygame gave me an error when I first tried it. I suspect the same thing will happen to you.
+This is because a library needed for the sound is either outdated or not included in pygame. Run brew tap homebrew/headonly
+then brew install --HEAD smpeg. If that doesn't work run brew update.
+
+Third, if the game crashes without giving any error or just freezes on a white screen, that means some library to display the images
+is missing. Run brew install sdl sdl_image sdl_mixer sdl_ttf portmidi and it should work.
+
+Enjoy the game, we aren't server experts or anything but we tried :)
