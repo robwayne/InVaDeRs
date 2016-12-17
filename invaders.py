@@ -146,7 +146,8 @@ hit = False
 expl = []
 replay = False
 client = ClientSocket()
-client.connect('',5000)
+client.connect('10.225.95.146',5000)
+letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o','p','q','r','s','t','u','v','w','x','y','z']
 name = []
 while True:
     cont = False

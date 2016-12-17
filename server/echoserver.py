@@ -56,7 +56,7 @@ def newClient(clientsocket):
         while True:
             p2Score = client.recv(80).decode("utf_8")
             p2Score = p2Score.split(',')
-            scoreboard.append([p2Score[0].replace("(", "").replace("'", "").replace("'", ""), p2Score[2], p2Score[3])
+            scoreboard.append([p2Score[0].replace("(", "").replace("'", "").replace("'", ""), p2Score[2], p2Score[3]])
             break
         while True:
             if len(scoreboard)==len(clientlist):
