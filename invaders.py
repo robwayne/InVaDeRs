@@ -310,7 +310,6 @@ while True:
 
     client.send('fin')
 
-    print("entering while")
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -325,8 +324,6 @@ while True:
             playing=False
         if hiScore<score:
             hiScore = score
-        print("inside while")
-        print("Player 2 Score: "+str(p2Score))
         if score>p2Score:
             message = "You Won!"
         elif p2Score>score:
