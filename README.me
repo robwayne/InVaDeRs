@@ -6,11 +6,11 @@ Each player starts at the same time and receives the same asteroids on their scr
 The player with the most points after you have both died wins.
 
 This game is written in python and uses the pygame module along with the socket and _thread module to allow server interaction.
-In order for game to run a few things need to be done:
+In order for the game to run a few things need to be done:
 
 First, two computers are needed to play this game, one computer will run both the invaders.py and
-server/echoserver.py file. Before the person who is not going to run the server file runs invaders.py,
-in line 207 add the IP address of the host as a string in the first parameter.
+server/server.py file. Before the person who is not going to run the server file runs invaders.py,
+in line 227 {client.connect('<host_ip_address>',5000)} add the IP address of the host as a string in the first parameter.
 
 Second, the sound functions in pygame gave me an error when I first tried it. I suspect the same thing will happen to you.
 This is because a library needed for the sound is either outdated or not included in pygame. Run brew tap homebrew/headonly

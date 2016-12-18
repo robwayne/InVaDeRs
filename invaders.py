@@ -1,7 +1,5 @@
 
 """Authors: russellcoke & robwayne"""
-
-
 import os
 import pygame
 import random
